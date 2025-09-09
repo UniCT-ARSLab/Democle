@@ -17,32 +17,37 @@
 
 #include <unistd.h>
 
+#include "lock.h"
 Engine * Engine::current = nullptr;
 
 bool KnowledgeBase::assert_belief(AtomicFormula * bel)
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    ENTER_CS(m_mutex);
     if (kb.count(bel->get_name())) {
         vector<AtomicFormula *> & v = kb[bel->get_name()];
         for (vector<AtomicFormula*>::iterator it = v.begin(); it != v.end(); it++) {
             AtomicFormula * b = (*it);
-            if (b->match_ground(*bel))
+            if (b->match_ground(*bel)) {
+                EXIT_CS(m_mutex);
                 return false;
+            }
         }
         v.push_back(bel);
+        EXIT_CS(m_mutex);
         return true;
     }
     else {
         vector<AtomicFormula*> v;
         v.push_back(bel);
         kb[bel->get_name()] = v;
+        EXIT_CS(m_mutex);
         return true;
     }
 }
 
 bool KnowledgeBase::retract_belief(AtomicFormula * bel)
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    ENTER_CS(m_mutex);
     if (kb.count(bel->get_name())) {
         vector<AtomicFormula *> & v = kb[bel->get_name()];
         for (vector<AtomicFormula*>::iterator it = v.begin(); it != v.end(); it++) {
@@ -50,26 +55,29 @@ bool KnowledgeBase::retract_belief(AtomicFormula * bel)
             if (b->match_ground(*bel)) {
                 v.erase(it);
                 delete b;
+                EXIT_CS(m_mutex);
                 return true;
             }
         }
     }
+    EXIT_CS(m_mutex);
     return false;
 }
 
 vector<AtomicFormula *> * KnowledgeBase::get_named_beliefs(string & name)
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    vector<AtomicFormula *> * ptr = NULL;
+    ENTER_CS(m_mutex);
     if (kb.count(name))
-        return & kb[name];
-    else
-        return NULL;
+        ptr = & kb[name];
+    EXIT_CS(m_mutex);
+    return ptr;
 
 }
 
 bool KnowledgeBase::get_matching_beliefs(AtomicFormula * bel, Context * starting_context, ContextPtrVector * ctx_array)
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    ENTER_CS(m_mutex);
     bool ret_val = false;
     if (kb.count(bel->get_name())) {
         vector<AtomicFormula *> & v = kb[bel->get_name()];
@@ -89,12 +97,13 @@ bool KnowledgeBase::get_matching_beliefs(AtomicFormula * bel, Context * starting
             bel->unbind();
         }
     }
+    EXIT_CS(m_mutex);
     return ret_val;
 }
 
 bool KnowledgeBase::verify_matching_beliefs(Context * ctx, AtomicFormula * bel)
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    ENTER_CS(m_mutex);
     if (kb.count(bel->get_name())) {
         vector<AtomicFormula *> & v = kb[bel->get_name()];
         for (vector<AtomicFormula*>::iterator it = v.begin(); it != v.end(); it++) {
@@ -102,23 +111,31 @@ bool KnowledgeBase::verify_matching_beliefs(Context * ctx, AtomicFormula * bel)
             bel->bind(ctx);
             if (bel->match_and_bind(*b)) {
                 bel->unbind();
+                EXIT_CS(m_mutex);
                 return true;
             }
             bel->unbind();
         }
     }
+    EXIT_CS(m_mutex);
     return false;
 }
 
 void KnowledgeBase::show()
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    ENTER_CS(m_mutex);
     for (const auto& _pair  : kb) {
         auto &bel_vector = _pair.second;
         for (auto b : bel_vector ) {
-            cout << *b << endl;
+            cout << *b;
+#ifdef HAS_EMBEDDED
+            Serial.println();
+#else
+            cout << endl;
+#endif            
         }
     }
+    EXIT_CS(m_mutex);
 }
 
 
@@ -178,7 +195,9 @@ void show_free_memory();
 
 void Engine::run()
 {
+#ifndef HAS_EMBEDDED
     cout << "[" << name << "] Agent started" << endl;
+#endif
 
     for (vector<Sensor *>::iterator it = agent->get_sensors().begin();
          it != agent->get_sensors().end();
@@ -192,9 +211,9 @@ void Engine::run()
     while (true) {
 
         Event * evt = event_queue.pop();
-        //cout << "BEGIN-------------------------------------------------" << endl;
+        DEBUG(cout << "BEGIN-------------------------------------------------" << endl;)
 
-        //cout << "Event queued : " << (evt->get_belief()) << endl;
+        DEBUG(cout << "Event queued : " << (*(evt->get_belief())) << endl;)
 
         execute_event(evt);
 

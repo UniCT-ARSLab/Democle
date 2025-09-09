@@ -18,6 +18,7 @@ void * thread_start(void * x)
     Agent * a = reinterpret_cast<Agent *>(x);
     //a->dump_accepted_messages();
     a->get_engine()->start();
+    return nullptr;
 }
 
 
@@ -25,7 +26,8 @@ void Agent::start()
 {
     Engine::set_current(e);
 #ifdef HAS_EMBEDDED
-    xTaskCreate((TaskFunction_t)thread_start, name.c_str(), 4096, this, tskIDLE_PRIORITY, NULL);
+    xTaskCreate((TaskFunction_t)thread_start, name.c_str(), 8192, this, tskIDLE_PRIORITY, NULL);
+    run();
 #else
     run();
     main_thread = new thread(thread_start, this);

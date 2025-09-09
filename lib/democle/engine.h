@@ -5,20 +5,34 @@
 #ifndef __ENGINE_H
 #define __ENGINE_H
 
+#ifdef HAS_EMBEDDED
+#include <Arduino.h>
+#endif
+#ifdef STM32F4
+#include <STM32FreeRTOS.h>
+#else
 #include <thread>
+#include <mutex>
+#endif
 #include "democle_types.h"
 #include "goal.h"
 #include "plan.h"
 #include "tsqueue.h"
 #include "context_collector.h"
+#include "lock.h"
 
 class Agent;
 
 class KnowledgeBase {
     std::map<string, vector<AtomicFormula *>> kb;
-    std::mutex m_mutex;
+    democle_lock_t m_mutex;
  public:
-    KnowledgeBase() { };
+    KnowledgeBase() {
+#ifdef STM32F4
+        m_mutex = xSemaphoreCreateMutex();
+        EXIT_CS(m_mutex);
+#endif
+    };
     bool assert_belief(AtomicFormula * bel);
     bool retract_belief(AtomicFormula * bel);
     vector<AtomicFormula *> * get_named_beliefs(string & name);

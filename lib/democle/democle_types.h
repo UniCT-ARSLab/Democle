@@ -189,6 +189,7 @@ public:
     string & get_name() { return name; };
 
     term_vector & get_terms() { return _terms; };
+    void set_terms(term_vector & t) { _terms = t; };
     int arity() { return _terms.size(); };
 
     bool match_ground(AtomicFormula & b);

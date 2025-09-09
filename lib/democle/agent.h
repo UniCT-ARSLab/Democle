@@ -45,8 +45,10 @@ class Agent {
     //vector<t_message_template> accepted_messages;
     t_message_template * accepted_messages;
     int accepted_messages_index;
+#ifndef HAS_EMBEDDED
     thread * main_thread;
-    Engine * e;
+#endif
+      Engine * e;
  protected:
     void accept_messages(int x,...);
     vector<Sensor *> sensors;

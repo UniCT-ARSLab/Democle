@@ -25,14 +25,41 @@ class Timer : public Sensor {
 #ifdef HAS_EMBEDDED
 
 #include <Arduino.h>
+#ifdef STM32F4
+#include <STM32FreeRTOS.h>
+#endif
+
+class DigitalInputPoller : public Sensor {
+    int pin, edge, time_delay;
+    int old_state;
+ public:
+    DigitalInputPoller(int _pin, int _edge, int _del) : Sensor(),pin(_pin),edge(_edge),time_delay(_del) 
+    { 
+        pinMode(pin, INPUT);
+        if (edge == FALLING)
+            old_state = 1;
+        else
+            old_state = 0;
+    };
+    virtual void sense();
+};
+
+
+class AnalogInputPoller : public Sensor {
+    int pin, period;
+ public:
+    AnalogInputPoller(int _pin, int _period) : Sensor(),pin(_pin),period(_period) 
+    {
+    };
+    virtual void sense();
+};
+
 
 class DigitalInputEventHandler {
     int event_pin;
     std::map<int, AtomicFormula *> belief_map;
     std::map<int, Agent *> agent_map;
     std::map<int, bool> event;
-    std::mutex m_mutex;
-    std::condition_variable m_cond;
     TaskHandle_t event_task;
     static DigitalInputEventHandler * _instance;
     static bool started;

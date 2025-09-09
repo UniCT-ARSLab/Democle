@@ -5,6 +5,10 @@
 #ifndef __DEMOCLE_H
 #define __DEMOCLE_H
 
+#ifdef STM32F4
+#include <STM32FreeRTOS.h>
+#endif
+
 #include <string>
 #include <cstdarg>
 
@@ -41,6 +45,9 @@ class DEMOCLE {
 #ifndef HAS_EMBEDDED
     void _register_tcp_protocol(va_list args);
 #endif
+#if defined(HAS_EMBEDDED) && !defined(STM32F4)
+    void _register_hermeslora_protocol(va_list args);
+#endif
     void _send_message(Agent * sender, url & destination, AtomicFormula & b);
     void _put_message_in_queue(string & destination_agent, string & sender_agent, AtomicFormula & b);
 
@@ -50,6 +57,10 @@ class DEMOCLE {
 #ifndef HAS_EMBEDDED
         if (protocol_name == "tcp")
             instance()->_register_tcp_protocol(args);
+#endif
+#if defined(HAS_EMBEDDED) && !defined(STM32F4)
+        if (protocol_name == "hermeslora")
+            instance()->_register_hermeslora_protocol(args);
 #endif
         va_end(args);
     };

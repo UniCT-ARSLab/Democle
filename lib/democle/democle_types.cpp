@@ -2,6 +2,10 @@
  * democle_types.cpp
  */
 
+#ifdef HAS_EMBEDDED
+#include <Arduino.h>
+#endif
+
 #include "errors.h"
 #include "democle_types.h"
 #include "plan.h"
@@ -36,7 +40,11 @@ ostream& operator<<(ostream& out, term & t)
 
 ostream& operator<<(ostream & out, AtomicFormula & b)
 {
+#ifdef HAS_EMBEDDED
+    Serial.printf("%s(",b.get_name().c_str());
+#else
     out << b.get_name() << "(";
+#endif
     term_vector & t = b.get_terms();
 
     for (int i = 0; i < t.size(); i++) {
@@ -44,9 +52,17 @@ ostream& operator<<(ostream & out, AtomicFormula & b)
         out << t[i];
         t[i].unbind();
         if (i < t.size() - 1)
+#ifdef HAS_EMBEDDED
+    Serial.print(",");
+#else
             out << ",";
+#endif
     }
+#ifdef HAS_EMBEDDED
+    Serial.print(")");
+#else
     out << ")";
+#endif
     return out;
 }
 

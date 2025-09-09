@@ -89,7 +89,7 @@ class BinaryStream {
         ptr[3] = buffer[len++];
         return *this;
     };
-    BinaryStream & operator<<(double & v) {
+    BinaryStream & operator>>(double & v) {
         uint8_t * ptr = (uint8_t *)&v;
         ptr[0] = buffer[len++];
         ptr[1] = buffer[len++];

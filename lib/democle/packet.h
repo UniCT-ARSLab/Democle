@@ -16,6 +16,7 @@ class DEMOCLEPacket {
     void put(AtomicFormula a);
     void put(std::string s);
     void put(int i);
+    void put(double i);
     void get(AtomicFormula & a);
     void get(std::string & s);
     void get(int & i);

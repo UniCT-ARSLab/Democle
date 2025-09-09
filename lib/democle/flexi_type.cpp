@@ -3,6 +3,9 @@
  */
 
 #include "flexi_type.h"
+#ifdef HAS_EMBEDDED
+#include <Arduino.h>
+#endif
 
 bool flexi_type::operator==(flexi_type & t)
 {
@@ -93,6 +96,21 @@ void flexi_type::set(flexi_type & t)
 
 ostream& operator<<(ostream& out, flexi_type & t)
 {
+#ifdef HAS_EMBEDDED
+    switch (t._type) {
+    case flexi_type::_int:
+        Serial.print((int)t);
+        break;
+    case flexi_type::_float:
+        Serial.print((float)t);
+        break;
+    case flexi_type::_string:
+        Serial.print(((string)t).c_str());
+        break;
+    default:
+        break;
+    }
+#else
     switch (t._type) {
     case flexi_type::_int:
         out << (int)t;
@@ -106,6 +124,7 @@ ostream& operator<<(ostream& out, flexi_type & t)
     default:
         break;
     }
+#endif
     return out;
 }
 
