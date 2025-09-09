@@ -1,6 +1,6 @@
 
 
-include_directories (../lib/democle)
+include_directories (../lib/democle  ../lib/hermes)
 link_directories (${CMAKE_SOURCE_DIR}/lib/democle)
 
 include(test.cmake)

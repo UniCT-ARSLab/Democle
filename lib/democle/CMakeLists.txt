@@ -66,4 +66,4 @@ install(FILES ${HEADERS} DESTINATION include)
 
 #add_compile_options(-g)
 
-include_directories (${CMAKE_SOURCE_DIR})
+include_directories (${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/lib/hermes)

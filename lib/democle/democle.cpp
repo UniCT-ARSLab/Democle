@@ -38,7 +38,7 @@ void DEMOCLE::_register_hermeslora_protocol(va_list args)
 
     if (protocol_registry.find("hermeslora") != protocol_registry.end()) {
         //Serial.println("hermeslora protocol is already registered.");
-        return; 
+        return;
     }
 
     const char* devName = va_arg(args, const char*);
@@ -59,7 +59,7 @@ void DEMOCLE::_register_hermeslora_protocol(va_list args)
     } else {
         protocol_registry["hermeslora"] = new HermesLoraProtocol(devName, loraCS, loraIRQ, loraRST, loraIO1);
     }
- 
+
 }
 #endif
 
@@ -79,9 +79,12 @@ void DEMOCLE::_put_message_in_queue(string & destination_agent, string & sender_
 
     if (a == nullptr)
     {
+#ifdef HAS_EMBEDDED
         Serial.println("Agent not found\n");
         return;
-        // throw AgentNotFoundException(destination_agent);
+#else
+        throw AgentNotFoundException(destination_agent);
+#endif
     }
 
     //cout << "Sending message from agent " << sender_agent << " to agent " << a->get_name() << "," << b << endl;

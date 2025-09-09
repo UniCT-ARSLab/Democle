@@ -6,7 +6,7 @@ project (${PACKAGE})
 find_package(Threads REQUIRED)
 
 add_subdirectory (lib)
-add_subdirectory (tests)
+add_subdirectory (examples)
 
 add_compile_options(-g)
 
